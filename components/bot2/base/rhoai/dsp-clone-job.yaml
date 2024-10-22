@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: dsp-clone-job-bot2-gitops
+spec:  
+  template:         
+    metadata:
+      name: dsp-clone-job-bot2-gitops
+    spec:  
+      serviceAccountName: bot2-dsp-job
+      containers:
+      - name: initialize-dsp
+        image: quay.io/redhat-ai-dev/utils:latest
+        command:
+        - /bin/bash
+        - -c
+        - |
+          NS=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
+          oc wait -l statefulset=bot2-notebook --for=condition=ready pod --timeout=300s
+          oc exec  StatefulSet/bot2-notebook -- git clone https://github.com/jrichter-rhtap/bot2
+      restartPolicy: Never
